@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Accordion = ({ items }) => {
   const [activeId, setActiveId] = useState(null);
@@ -55,10 +57,11 @@ const Accordion = ({ items }) => {
     const clienteRef = doc(db, "clientes", id);
     try {
       await updateDoc(clienteRef, editData);
-      console.log("Cliente actualizado");
+      toast.success("Cliente actualizado exitosamente");
       setEditModeId(null);
     } catch (error) {
       console.error("Error actualizando el cliente: ", error);
+      toast.error("Error al actualizar el cliente");
     }
   };
 
@@ -67,16 +70,15 @@ const Accordion = ({ items }) => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "¿Estás seguro de que deseas eliminar este cliente?"
-    );
+    const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este cliente?");
     if (confirmDelete) {
       const clienteRef = doc(db, "clientes", id);
       try {
         await deleteDoc(clienteRef);
-        console.log("Cliente eliminado");
+        toast.success("Cliente eliminado exitosamente");
       } catch (error) {
         console.error("Error eliminando el cliente: ", error);
+        toast.error("Error al eliminar el cliente");
       }
     }
   };
