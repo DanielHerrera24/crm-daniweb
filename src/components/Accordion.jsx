@@ -3,11 +3,12 @@
 import { useState, memo } from "react";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Accordion = ({ items }) => {
   const [activeId, setActiveId] = useState(null);
+  const [estado, setEstado] = useState({});
   const [editModeId, setEditModeId] = useState(null);
   const [editData, setEditData] = useState({});
 
@@ -17,6 +18,19 @@ const Accordion = ({ items }) => {
       setEditModeId(null);
     }
     setActiveId(activeId === id ? null : id);
+  };
+
+  const handleEstadoChange = (id, newEstado) => {
+    setEstado({ ...estado, [id]: newEstado });
+    const clienteRef = doc(db, "clientes", id);
+    updateDoc(clienteRef, { estado: newEstado })
+      .then(() => {
+        toast.success("Estado actualizado");
+      })
+      .catch((error) => {
+        console.error("Error actualizando el estado: ", error);
+        toast.error("Error al actualizar el estado");
+      });
   };
 
   const handleEditClick = (cliente) => {
@@ -29,6 +43,7 @@ const Accordion = ({ items }) => {
       correo: cliente.correo,
       notas: cliente.notas,
       estado: cliente.estado,
+      redesSociales: cliente.redesSociales || [],
     });
   };
 
@@ -37,6 +52,31 @@ const Accordion = ({ items }) => {
     setEditData({
       ...editData,
       [name]: value,
+    });
+  };
+
+  const handleRedSocialChange = (index, field, value) => {
+    const nuevasRedes = [...editData.redesSociales];
+    nuevasRedes[index][field] = value;
+    setEditData({
+      ...editData,
+      redesSociales: nuevasRedes,
+    });
+  };
+
+  const handleAddRedSocial = () => {
+    setEditData({
+      ...editData,
+      redesSociales: [...editData.redesSociales, { tipo: "", url: "" }],
+    });
+  };
+
+  const handleRemoveRedSocial = (index) => {
+    const nuevasRedes = [...editData.redesSociales];
+    nuevasRedes.splice(index, 1);
+    setEditData({
+      ...editData,
+      redesSociales: nuevasRedes,
     });
   };
 
@@ -57,7 +97,9 @@ const Accordion = ({ items }) => {
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este cliente?");
+    const confirmDelete = window.confirm(
+      "¿Estás seguro de que deseas eliminar este cliente?"
+    );
     if (confirmDelete) {
       const clienteRef = doc(db, "clientes", id);
       try {
@@ -91,7 +133,7 @@ const Accordion = ({ items }) => {
                       htmlFor={`nombre-${cliente.id}`}
                       className="block font-semibold"
                     >
-                      Nombre:
+                      Nombre del cliente: <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -100,6 +142,7 @@ const Accordion = ({ items }) => {
                       value={editData.nombre}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
+                      required
                     />
                   </div>
                   <div>
@@ -107,7 +150,7 @@ const Accordion = ({ items }) => {
                       htmlFor={`nombreNegocio-${cliente.id}`}
                       className="block font-semibold"
                     >
-                      Nombre del Negocio:
+                      Nombre del Negocio: <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -116,6 +159,7 @@ const Accordion = ({ items }) => {
                       value={editData.nombreNegocio}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
+                      required
                     />
                   </div>
                   <div>
@@ -123,7 +167,7 @@ const Accordion = ({ items }) => {
                       htmlFor={`direccion-${cliente.id}`}
                       className="block font-semibold"
                     >
-                      Dirección:
+                      Dirección: <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -132,6 +176,7 @@ const Accordion = ({ items }) => {
                       value={editData.direccion}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
+                      required
                     />
                   </div>
                   <div>
@@ -139,7 +184,7 @@ const Accordion = ({ items }) => {
                       htmlFor={`telefono-${cliente.id}`}
                       className="block font-semibold"
                     >
-                      Teléfono:
+                      Teléfono: <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -148,6 +193,7 @@ const Accordion = ({ items }) => {
                       value={editData.telefono}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
+                      required
                     />
                   </div>
                   <div>
@@ -155,13 +201,133 @@ const Accordion = ({ items }) => {
                       htmlFor={`correo-${cliente.id}`}
                       className="block font-semibold"
                     >
-                      Correo:
+                      Correo Electrónico: <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
                       id={`correo-${cliente.id}`}
                       name="correo"
                       value={editData.correo}
+                      onChange={handleEditChange}
+                      className="w-full px-3 py-2 border rounded"
+                      required
+                    />
+                  </div>
+
+                  {/* Redes Sociales en Edición */}
+                  <div>
+                    <label className="block font-semibold mb-2">
+                      Redes Sociales:
+                    </label>
+                    {editData.redesSociales.map((redSocial, index) => (
+                      <div key={index} className="border p-3 rounded mb-2">
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-semibold">
+                            {redSocial.tipo || "Tipo"}
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveRedSocial(index)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-5 w-5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="mt-2">
+                          <label className="block font-semibold">
+                            Tipo de Red Social:
+                          </label>
+                          <select
+                            value={redSocial.tipo}
+                            onChange={(e) =>
+                              handleRedSocialChange(
+                                index,
+                                "tipo",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 border rounded"
+                            required
+                          >
+                            <option value="">Seleccione</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Twitter">Twitter</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Pinterest">Pinterest</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Otra">Otra</option>
+                          </select>
+                        </div>
+                        <div className="mt-2">
+                          <label className="block font-semibold">URL:</label>
+                          <input
+                            type="url"
+                            value={redSocial.url}
+                            onChange={(e) =>
+                              handleRedSocialChange(
+                                index,
+                                "url",
+                                e.target.value
+                              )
+                            }
+                            className="w-full px-3 py-2 border rounded"
+                            required
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={handleAddRedSocial}
+                      className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      Agregar Red Social
+                    </button>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor={`sitioWebActual-${cliente.id}`}
+                      className="block font-semibold"
+                    >
+                      Sitio Web Actual (URL):
+                    </label>
+                    <input
+                      type="url"
+                      id={`sitioWebActual-${cliente.id}`}
+                      name="sitioWebActual"
+                      value={editData.sitioWebActual}
+                      onChange={handleEditChange}
+                      className="w-full px-3 py-2 border rounded"
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor={`sitioWebAntiguo-${cliente.id}`}
+                      className="block font-semibold"
+                    >
+                      Sitio Web Antiguo (URL):
+                    </label>
+                    <input
+                      type="text"
+                      id={`sitioWebAntiguo-${cliente.id}`}
+                      name="sitioWebAntiguo"
+                      value={editData.sitioWebAntiguo}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
                     />
@@ -232,11 +398,77 @@ const Accordion = ({ items }) => {
                     <strong>Correo:</strong> {cliente.correo}
                   </p>
                   <p>
-                    <strong>Notas:</strong> {cliente.notas}
+                    <strong>Sitio Web Actual:</strong>{" "}
+                    <a
+                      href={cliente.sitioWebActual}
+                      className="text-blue-500 underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {cliente.sitioWebActual}
+                    </a>
                   </p>
                   <p>
-                    <strong>Estado:</strong> {cliente.estado}
+                    <strong>Sitio Web Antiguo:</strong>{" "}
+                    {cliente.sitioWebAntiguo ? (
+                      <a
+                        href={cliente.sitioWebAntiguo}
+                        className="text-blue-500 underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {cliente.sitioWebAntiguo}
+                      </a>
+                    ) : (
+                      "N/A"
+                    )}
                   </p>
+                  <p>
+                    <strong>Notas:</strong> {cliente.notas}
+                  </p>
+                  <div>
+                    <strong>Redes Sociales:</strong>
+                    <ul className="list-disc list-inside">
+                      {cliente.redesSociales &&
+                      cliente.redesSociales.length > 0 ? (
+                        cliente.redesSociales.map((red, idx) => (
+                          <li key={idx}>
+                            {red.tipo}:{" "}
+                            <a
+                              href={red.url}
+                              className="text-blue-500 underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {red.url}
+                            </a>
+                          </li>
+                        ))
+                      ) : (
+                        <li>No tiene redes sociales.</li>
+                      )}
+                    </ul>
+                  </div>
+                  <div className="mt-2">
+                    <label
+                      htmlFor={`estado-${cliente.id}`}
+                      className="block mb-1 font-semibold"
+                    >
+                      Estado:
+                    </label>
+                    <select
+                      id={`estado-${cliente.id}`}
+                      value={estado[cliente.id] || cliente.estado}
+                      onChange={(e) =>
+                        handleEstadoChange(cliente.id, e.target.value)
+                      }
+                      className="border p-2 rounded w-full"
+                    >
+                      <option value="Pendiente">Pendiente</option>
+                      <option value="Desarrollando">Desarrollando</option>
+                      <option value="Realizado">Realizado</option>
+                    </select>
+                  </div>
                   {/* Botones de Editar y Eliminar */}
                   <div className="flex space-x-2 mt-4">
                     <button
