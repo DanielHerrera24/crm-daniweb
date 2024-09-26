@@ -41,7 +41,7 @@ const AgregarCliente = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 text-black">
+    <div className="bg-gray-600 p-4 mb-10">
       <h2 className="text-2xl mb-4">Agregar Nuevo Cliente</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
