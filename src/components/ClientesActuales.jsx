@@ -8,12 +8,15 @@ import AgregarCliente from './AgregarCliente';
 const ClientesActuales = () => {
   const [clientes, setClientes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const clientesPerPage = 10; // Puedes ajustar este valor según tus necesidades
+  const clientesPerPage = 5; // Puedes ajustar este valor según tus necesidades
 
   // Estados para la búsqueda y el ordenamiento
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' o 'desc'
+
+  // Estado para el modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Implementación de debounce para la búsqueda
   useEffect(() => {
@@ -93,6 +96,15 @@ const ClientesActuales = () => {
     setCurrentPage(1); // Reiniciar a la primera página al cambiar el orden
   };
 
+  // Funciones para manejar el modal
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   // Generar números de página
   const pageNumbers = [];
   for (let i = 1; i <= totalPages; i++) {
@@ -100,11 +112,21 @@ const ClientesActuales = () => {
   }
 
   return (
-    <div className="min-h-[50vh] bg-gray-600 p-4">
-      <h2 className="text-2xl mb-4">Clientes Actuales</h2>
+    <div className="min-h-[50vh] bg-gray-100 p-4">
+      <h2 className="text-2xl mb-4 text-black">Clientes Actuales</h2>
       
-      {/* Componente para agregar un nuevo cliente */}
-      <AgregarCliente />
+      {/* Botón para abrir el modal */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={openModal}
+          className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600"
+        >
+          Agregar Cliente
+        </button>
+      </div>
+
+      {/* Modal para agregar cliente */}
+      {isModalOpen && <AgregarCliente onClose={closeModal} />}
 
       {/* Barra de Búsqueda y Controles de Ordenamiento */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4">

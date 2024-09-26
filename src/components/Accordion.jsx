@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 // src/components/Accordion.jsx
-import { useState } from "react";
+import { useState, memo } from "react";
 import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from 'react-toastify';
@@ -8,7 +8,6 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const Accordion = ({ items }) => {
   const [activeId, setActiveId] = useState(null);
-  const [estado, setEstado] = useState({});
   const [editModeId, setEditModeId] = useState(null);
   const [editData, setEditData] = useState({});
 
@@ -18,18 +17,6 @@ const Accordion = ({ items }) => {
       setEditModeId(null);
     }
     setActiveId(activeId === id ? null : id);
-  };
-
-  const handleEstadoChange = (id, newEstado) => {
-    setEstado({ ...estado, [id]: newEstado });
-    const clienteRef = doc(db, "clientes", id);
-    updateDoc(clienteRef, { estado: newEstado })
-      .then(() => {
-        console.log("Estado actualizado");
-      })
-      .catch((error) => {
-        console.error("Error actualizando el estado: ", error);
-      });
   };
 
   const handleEditClick = (cliente) => {
@@ -247,23 +234,9 @@ const Accordion = ({ items }) => {
                   <p>
                     <strong>Notas:</strong> {cliente.notas}
                   </p>
-                  <div className="mt-2">
-                    <label
-                      htmlFor={`estado-${cliente.id}`}
-                      className="block mb-1 font-semibold"
-                    >
-                      Estado:
-                    </label>
-                    <span
-                      id={`estado-${cliente.id}`}
-                      onChange={(e) =>
-                        handleEstadoChange(cliente.id, e.target.value)
-                      }
-                      className="border p-2 rounded w-full"
-                    >
-                      {estado[cliente.id] || cliente.estado}
-                    </span>
-                  </div>
+                  <p>
+                    <strong>Estado:</strong> {cliente.estado}
+                  </p>
                   {/* Botones de Editar y Eliminar */}
                   <div className="flex space-x-2 mt-4">
                     <button
@@ -295,4 +268,4 @@ const Accordion = ({ items }) => {
   );
 };
 
-export default Accordion;
+export default memo(Accordion);

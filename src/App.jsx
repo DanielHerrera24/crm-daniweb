@@ -11,11 +11,11 @@ function App() {
   return (
     <>
       <ToastContainer />
-      <main className="flex justify-center min-h-[80vh] pt-16">
+      <main className="flex justify-center min-h-[80vh]">
         <div className="flex flex-col md:mt-7 w-full max-w-screen-lg">
           <section
             id="seccion"
-            className="relative flex flex-col items-center w-full h-auto text-white"
+            className="relative flex flex-col items-center w-full h-auto text-black"
           >
             <AuthProvider>
               <Routes>
