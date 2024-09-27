@@ -117,12 +117,12 @@ const Accordion = ({ items }) => {
   };
 
   return (
-    <div className="space-y-2 text-black">
+    <div className="space-y-2 text-black max-w-[600px]">
       {items.map((cliente) => (
         <div key={cliente.id} className="border rounded">
           <div
             onClick={() => toggle(cliente.id)}
-            className="flex justify-between items-center p-4 bg-gray-200 cursor-pointer"
+            className="flex justify-between items-center p-4 bg-[#2c94ea] text-white cursor-pointer"
           >
             <span>{cliente.nombre}</span>
             <span>{activeId === cliente.id ? "-" : "+"}</span>
@@ -420,7 +420,7 @@ const Accordion = ({ items }) => {
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {cliente.maps}
+                      Link a Maps
                     </a>
                   </p>
                   <p className="flex flex-wrap gap-2">
@@ -501,7 +501,7 @@ const Accordion = ({ items }) => {
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              {red.url}
+                              {red.tipo}
                             </a>
                           </li>
                         ))

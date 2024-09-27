@@ -15,7 +15,7 @@ function App() {
         <div className="flex flex-col md:mt-7 w-full max-w-screen-lg">
           <section
             id="seccion"
-            className="relative flex flex-col items-center w-full h-auto text-black"
+            className="relative flex flex-col items-center w-full h-auto text-black pt-16"
           >
             <AuthProvider>
               <Routes>

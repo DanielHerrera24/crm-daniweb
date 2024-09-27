@@ -128,8 +128,8 @@ const ClientesActuales = () => {
   }
 
   return (
-    <div className="min-h-[50vh] bg-gray-100 p-4">
-      <h2 className="text-2xl mb-4 text-black">Clientes Actuales</h2>
+    <div className="min-h-[50vh] bg-[#1d70b3] p-4 rounded-xl">
+      <h2 className="text-2xl mb-4 text-white text-center">Clientes Actuales</h2>
 
       {/* Botón para abrir el modal */}
       <div className="flex justify-end mb-4">
@@ -159,7 +159,7 @@ const ClientesActuales = () => {
 
         {/* Controles de Ordenamiento */}
         <div className="flex items-center space-x-2">
-          <span>Ordenar:</span>
+          <span className="text-white">Ordenar:</span>
           <button
             onClick={handleSortOrderChange}
             className="px-4 py-2 bg-[#2c94ea] text-white rounded hover:bg-[#19578a] flex items-center"
@@ -238,7 +238,7 @@ const ClientesActuales = () => {
 
       {/* Mensaje cuando no hay clientes */}
       {filteredAndSortedClientes.length === 0 && (
-        <p className="text-center mt-4 text-gray-500">
+        <p className="text-center mt-4 text-white">
           No se encontraron clientes.
         </p>
       )}
