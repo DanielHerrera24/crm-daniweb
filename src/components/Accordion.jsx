@@ -5,6 +5,7 @@ import { doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 
 const Accordion = ({ items }) => {
   const [activeId, setActiveId] = useState(null);
@@ -39,6 +40,9 @@ const Accordion = ({ items }) => {
       nombre: cliente.nombre,
       nombreNegocio: cliente.nombreNegocio,
       direccion: cliente.direccion,
+      sitioWebActual: cliente.sitioWebActual,
+      sitioWebAntiguo: cliente.sitioWebAntiguo,
+      maps: cliente.maps,
       telefono: cliente.telefono,
       correo: cliente.correo,
       notas: cliente.notas,
@@ -133,7 +137,8 @@ const Accordion = ({ items }) => {
                       htmlFor={`nombre-${cliente.id}`}
                       className="block font-semibold"
                     >
-                      Nombre del cliente: <span className="text-red-500">*</span>
+                      Nombre del cliente:{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -150,7 +155,8 @@ const Accordion = ({ items }) => {
                       htmlFor={`nombreNegocio-${cliente.id}`}
                       className="block font-semibold"
                     >
-                      Nombre del Negocio: <span className="text-red-500">*</span>
+                      Nombre del Negocio:{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -180,6 +186,20 @@ const Accordion = ({ items }) => {
                     />
                   </div>
                   <div>
+                    <label htmlFor="maps" className="block font-semibold">
+                      Dirección (URL Maps):
+                    </label>
+                    <input
+                      type="text"
+                      id={`maps-${cliente.id}`}
+                      name="maps"
+                      value={editData.maps}
+                      onChange={handleEditChange}
+                      className="w-full px-3 py-2 border rounded"
+                      required
+                    />
+                  </div>
+                  <div>
                     <label
                       htmlFor={`telefono-${cliente.id}`}
                       className="block font-semibold"
@@ -201,7 +221,8 @@ const Accordion = ({ items }) => {
                       htmlFor={`correo-${cliente.id}`}
                       className="block font-semibold"
                     >
-                      Correo Electrónico: <span className="text-red-500">*</span>
+                      Correo Electrónico:{" "}
+                      <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -294,7 +315,7 @@ const Accordion = ({ items }) => {
                     <button
                       type="button"
                       onClick={handleAddRedSocial}
-                      className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                      className="mt-2 px-4 py-2 bg-[#2c94ea] text-white rounded hover:bg-[#19578a]"
                     >
                       Agregar Red Social
                     </button>
@@ -392,10 +413,50 @@ const Accordion = ({ items }) => {
                     <strong>Dirección:</strong> {cliente.direccion}
                   </p>
                   <p>
-                    <strong>Teléfono:</strong> {cliente.telefono}
+                    <strong>Dirección (URL Maps):</strong>{" "}
+                    <a
+                      href={cliente.maps}
+                      className="text-blue-500 underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {cliente.maps}
+                    </a>
+                  </p>
+                  <p className="flex flex-wrap gap-2">
+                    <strong>Teléfono:</strong>
+                    <div className="flex gap-1 items-center">
+                      <FaWhatsapp color="#25D366" size={20} />{" "}
+                      <a
+                        href={`https://wa.me/${cliente.telefono.replace(/\s+/g, '')}`}
+                        className="text-[#25D366] underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {cliente.telefono}
+                      </a>
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      <FaPhoneAlt color="#2c94ea" size={16} />
+                      <a
+                        href={`tel://${cliente.telefono.replace(/\s+/g, '')}`}
+                        className="text-[#2c94ea] underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {cliente.telefono}
+                      </a>
+                    </div>
                   </p>
                   <p>
-                    <strong>Correo:</strong> {cliente.correo}
+                    <strong>Correo:</strong> <a
+                      href={`mailto:${cliente.correo}`}
+                      className="text-blue-500 underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {cliente.correo}
+                    </a>
                   </p>
                   <p>
                     <strong>Sitio Web Actual:</strong>{" "}

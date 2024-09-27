@@ -10,6 +10,7 @@ const AgregarCliente = ({ onClose }) => {
     nombre: "",
     nombreNegocio: "",
     direccion: "",
+    maps: "",
     telefono: "",
     correo: "",
     sitioWebActual: "",
@@ -45,10 +46,7 @@ const AgregarCliente = ({ onClose }) => {
       setSelectedRedes([...selectedRedes, value]);
       setCliente({
         ...cliente,
-        redesSociales: [
-          ...cliente.redesSociales,
-          { tipo: value, url: "" },
-        ],
+        redesSociales: [...cliente.redesSociales, { tipo: value, url: "" }],
       });
     } else {
       setSelectedRedes(selectedRedes.filter((red) => red !== value));
@@ -172,6 +170,19 @@ const AgregarCliente = ({ onClose }) => {
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
               required
+            />
+          </div>
+          <div>
+            <label htmlFor="maps" className="block font-semibold">
+              Dirección (URL Maps):
+            </label>
+            <input
+              type="text"
+              id="maps"
+              name="maps"
+              value={cliente.maps}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded"
             />
           </div>
           <div>

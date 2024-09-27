@@ -121,7 +121,7 @@ function Login() {
             </div>
             <button
               type="submit"
-              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors duration-300 w-full"
+              className="bg-[#2c94ea] hover:bg-[#19578a] text-white font-bold py-2 px-4 rounded transition-colors duration-300 w-full"
             >
               Iniciar Sesión
             </button>

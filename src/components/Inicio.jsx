@@ -33,7 +33,7 @@ function Inicio() {
           </Link>
           <Link
             to="/posibles-clientes"
-            className="bg-blue-500 hover:bg-blue-700 text-white text-lg font-bold py-3 px-6 rounded shadow-lg flex items-center justify-center space-x-2 transition-colors duration-300"
+            className="bg-[#2c94ea] hover:bg-[#19578a] text-white text-lg font-bold py-3 px-6 rounded shadow-lg flex items-center justify-center space-x-2 transition-colors duration-300"
           >
             <FaUsers className="text-white" />
             <span>Posibles Clientes</span>
