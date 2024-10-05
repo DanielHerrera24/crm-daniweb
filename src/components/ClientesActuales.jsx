@@ -5,8 +5,11 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import Accordion from "./Accordion";
 import AgregarCliente from "./AgregarCliente";
 import { SyncLoader } from "react-spinners";
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 
 const ClientesActuales = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [clientes, setClientes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -35,7 +38,15 @@ const ClientesActuales = () => {
     setLoading(true);
     const q = query(
       collection(db, "clientes"),
-      where("estado", "in", ["Pendiente", "Desarrollando", "Realizado"])
+      where("estado", "in", [
+        "1er desarrollo",
+        "Listo para 1ra revision",
+        "2do Desarrollo",
+        "Listo para 2da revision",
+        "Ajustes para entrega final",
+        "Listo para entregar",
+        "En linea",
+      ])
     );
 
     const unsubscribe = onSnapshot(
@@ -129,7 +140,15 @@ const ClientesActuales = () => {
 
   return (
     <div className="min-h-[50vh] bg-[#1d70b3] p-4 rounded-xl">
-      <h2 className="text-2xl mb-4 text-white text-center">Clientes Actuales</h2>
+      <button
+        onClick={() => navigate(-1)}
+        className="bg-white shadow-lg border border-black rounded-full p-3 text-red-500"
+      >
+        <FaArrowLeft size={24} />
+      </button>
+      <h2 className="text-2xl mb-4 text-white text-center">
+        Clientes Actuales
+      </h2>
 
       {/* Botón para abrir el modal */}
       <div className="flex justify-end mb-4">
@@ -193,7 +212,11 @@ const ClientesActuales = () => {
       </div>
 
       {/* Lista de Clientes en Acordeón */}
-      {loading ? (<SyncLoader color="#2c94ea"/>) : (<Accordion items={currentClientes} />)}
+      {loading ? (
+        <SyncLoader color="#2c94ea" />
+      ) : (
+        <Accordion items={currentClientes} />
+      )}
 
       {/* Controles de Paginación */}
       <div className="flex justify-center mt-4 space-x-2">
@@ -237,8 +260,8 @@ const ClientesActuales = () => {
       </div>
 
       {/* Mensaje cuando no hay clientes */}
-      {filteredAndSortedClientes.length === 0 && (
-        <p className="text-center mt-4 text-white">
+      {filteredAndSortedClientes.length === 0 && !loading && (
+        <p className="text-center mt-4 text-gray-500">
           No se encontraron clientes.
         </p>
       )}

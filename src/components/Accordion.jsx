@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 // src/components/Accordion.jsx
 import { useState, memo } from "react";
-import { doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { doc, updateDoc, deleteDoc, Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -45,9 +45,10 @@ const Accordion = ({ items }) => {
       maps: cliente.maps,
       telefono: cliente.telefono,
       correo: cliente.correo,
-      notas: cliente.notas,
       estado: cliente.estado,
+      plan: cliente.plan,
       redesSociales: cliente.redesSociales || [],
+      notas: cliente.notas || [],
     });
   };
 
@@ -84,10 +85,27 @@ const Accordion = ({ items }) => {
     });
   };
 
+  const handleEliminarNota = (index) => {
+    const nuevasNotas = [...editData.notas];
+    nuevasNotas.splice(index, 1);
+    setEditData({
+      ...editData,
+      notas: nuevasNotas,
+    });
+  };
+
   const handleEditSave = async (id) => {
     const clienteRef = doc(db, "clientes", id);
     try {
-      await updateDoc(clienteRef, editData);
+      // Asegurarse de que las notas tienen timestamp
+      const notasConTimestamp = editData.notas.map((nota) => ({
+        ...nota,
+        timestamp:
+          nota.timestamp instanceof Date
+            ? Timestamp.fromDate(nota.timestamp)
+            : nota.timestamp,
+      }));
+      await updateDoc(clienteRef, { ...editData, notas: notasConTimestamp });
       toast.success("Cliente actualizado exitosamente");
       setEditModeId(null);
     } catch (error) {
@@ -353,20 +371,85 @@ const Accordion = ({ items }) => {
                       className="w-full px-3 py-2 border rounded"
                     />
                   </div>
+                  {/* Sección para Agregar Notas */}
                   <div>
-                    <label
-                      htmlFor={`notas-${cliente.id}`}
-                      className="block font-semibold"
-                    >
-                      Notas:
-                    </label>
-                    <textarea
-                      id={`notas-${cliente.id}`}
-                      name="notas"
-                      value={editData.notas}
-                      onChange={handleEditChange}
-                      className="w-full px-3 py-2 border rounded"
-                    ></textarea>
+                    <label className="block font-semibold mb-2">Notas:</label>
+                    <div className="flex flex-col sm:flex-row items-start gap-2">
+                      <textarea
+                        value={editData.notaActual || ""}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            notaActual: e.target.value,
+                          })
+                        }
+                        className="flex-1 px-3 py-2 border rounded"
+                        placeholder="Escribe una nota..."
+                      ></textarea>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (
+                            editData.notaActual &&
+                            editData.notaActual.trim() !== ""
+                          ) {
+                            const nuevaNota = {
+                              contenido: editData.notaActual.trim(),
+                              timestamp: new Date(),
+                            };
+                            setEditData({
+                              ...editData,
+                              notas: [nuevaNota, ...editData.notas],
+                              notaActual: "",
+                            });
+                          } else {
+                            toast.error("La nota no puede estar vacía");
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 mt-2 sm:mt-0"
+                      >
+                        Agregar Nota
+                      </button>
+                    </div>
+                    <div className="mt-4 space-y-2">
+                      {editData.notas && editData.notas.length > 0 ? (
+                        editData.notas.map((nota, index) => (
+                          <div
+                            key={index}
+                            className="bg-gray-100 p-3 rounded shadow"
+                          >
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">
+                                {nota.timestamp.toLocaleString()}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleEliminarNota(index)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-5 w-5"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M6 18L18 6M6 6l12 12"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                            <p className="mt-2">{nota.contenido}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-500">No hay notas agregadas.</p>
+                      )}
+                    </div>
                   </div>
                   <div>
                     <label
@@ -382,9 +465,35 @@ const Accordion = ({ items }) => {
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
                     >
-                      <option value="Pendiente">Pendiente</option>
-                      <option value="Desarrollando">Desarrollando</option>
-                      <option value="Realizado">Realizado</option>
+                      <option value="1er Desarrollo">1er Desarrollo</option>
+                      <option value="Listo para 1ra revision">
+                        Listo para 1ra revision
+                      </option>
+                      <option value="2do Desarrollo">2do Desarrollo</option>
+                      <option value="Listo para 2da revision">
+                        Listo para 2da revision
+                      </option>
+                      <option value="Ajustes para entrega final">
+                        Ajustes para entrega final
+                      </option>
+                      <option value="Listo para entregar">
+                        Listo para entregar
+                      </option>
+                      <option value="En linea">En línea</option>
+                    </select>
+                  </div>
+                  <div className="mt-4">
+                    <h4 className="font-semibold">Plan:</h4>
+                    <select
+                      id="plan"
+                      name="plan"
+                      value={cliente.plan}
+                      onChange={handleEditChange}
+                      className="w-full px-3 py-2 border rounded"
+                    >
+                      <option value="Inicial ($350/mes)">Inicial ($350/mes)</option>
+                      <option value="Intermedio ($500/mes)">Intermedio ($500/mes)</option>
+                      <option value="Pro ($900/mes)">Pro ($900/mes)</option>
                     </select>
                   </div>
                   {/* Botones de Guardar y Cancelar */}
@@ -423,12 +532,15 @@ const Accordion = ({ items }) => {
                       Link a Maps
                     </a>
                   </p>
-                  <p className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <strong>Teléfono:</strong>
                     <div className="flex gap-1 items-center">
                       <FaWhatsapp color="#25D366" size={20} />{" "}
                       <a
-                        href={`https://wa.me/${cliente.telefono.replace(/\s+/g, '')}`}
+                        href={`https://wa.me/${cliente.telefono.replace(
+                          /\s+/g,
+                          ""
+                        )}`}
                         className="text-[#25D366] underline"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -439,7 +551,7 @@ const Accordion = ({ items }) => {
                     <div className="flex gap-1 items-center">
                       <FaPhoneAlt color="#2c94ea" size={16} />
                       <a
-                        href={`tel://${cliente.telefono.replace(/\s+/g, '')}`}
+                        href={`tel://${cliente.telefono.replace(/\s+/g, "")}`}
                         className="text-[#2c94ea] underline"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -447,9 +559,10 @@ const Accordion = ({ items }) => {
                         {cliente.telefono}
                       </a>
                     </div>
-                  </p>
+                  </div>
                   <p>
-                    <strong>Correo:</strong> <a
+                    <strong>Correo:</strong>{" "}
+                    <a
                       href={`mailto:${cliente.correo}`}
                       className="text-blue-500 underline"
                       target="_blank"
@@ -484,9 +597,36 @@ const Accordion = ({ items }) => {
                       "N/A"
                     )}
                   </p>
-                  <p>
-                    <strong>Notas:</strong> {cliente.notas}
-                  </p>
+                  <div>
+                    <strong>Notas:</strong>
+                    <div className="mt-2 space-y-2">
+                      {cliente.notas && cliente.notas.length > 0 ? (
+                        cliente.notas
+                          .sort(
+                            (a, b) =>
+                              b.timestamp.toDate() - a.timestamp.toDate()
+                          )
+                          .map((nota, idx) => (
+                            <div
+                              key={idx}
+                              className="bg-gray-100 p-3 rounded shadow"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-600">
+                                  {nota.timestamp.toDate().toLocaleString()}
+                                </span>
+                                <span className="font-semibold">
+                                  Nota #{cliente.notas.length - idx}
+                                </span>
+                              </div>
+                              <p className="mt-2">{nota.contenido}</p>
+                            </div>
+                          ))
+                      ) : (
+                        <p className="text-gray-500">No hay notas.</p>
+                      )}
+                    </div>
+                  </div>
                   <div>
                     <strong>Redes Sociales:</strong>
                     <ul className="list-disc list-inside">
@@ -525,10 +665,26 @@ const Accordion = ({ items }) => {
                       }
                       className="border p-2 rounded w-full"
                     >
-                      <option value="Pendiente">Pendiente</option>
-                      <option value="Desarrollando">Desarrollando</option>
-                      <option value="Realizado">Realizado</option>
+                      <option value="1er Desarrollo">1er Desarrollo</option>
+                      <option value="Listo para 1ra revision">
+                        Listo para 1ra revision
+                      </option>
+                      <option value="2do Desarrollo">2do Desarrollo</option>
+                      <option value="Listo para 2da revision">
+                        Listo para 2da revision
+                      </option>
+                      <option value="Ajustes para entrega final">
+                        Ajustes para entrega final
+                      </option>
+                      <option value="Listo para entregar">
+                        Listo para entregar
+                      </option>
+                      <option value="En linea">En línea</option>
                     </select>
+                  </div>
+                  <div className="mt-4">
+                    <h4 className="font-semibold">Plan:</h4>
+                    <p>{cliente.plan}</p>
                   </div>
                   {/* Botones de Editar y Eliminar */}
                   <div className="flex space-x-2 mt-4">

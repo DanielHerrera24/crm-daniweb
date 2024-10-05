@@ -1,27 +1,31 @@
 /* eslint-disable react/prop-types */
-// src/components/AgregarCliente.jsx
+// src/components/AgregarPosibleCliente.jsx
 import { useState } from "react";
 import { collection, addDoc, Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { toast } from "react-toastify";
 
-const AgregarCliente = ({ onClose }) => {
-  const [cliente, setCliente] = useState({
+const AgregarPosibleCliente = ({ onClose }) => {
+  const [posibleCliente, setPosibleCliente] = useState({
     nombre: "",
     nombreNegocio: "",
     direccion: "",
-    maps: "",
     telefono: "",
     correo: "",
-    sitioWebActual: "",
-    sitioWebAntiguo: "",
-    estado: "1er Desarrollo",
-    plan: "Inicial ($350/mes)",
-    redesSociales: [],
+    sitioWeb: "",
+    estado: "Nuevo",
+    plan: "Inicial",
+    leadScore: 0,
+    actividades: [],
+    tareas: [],
     notas: [],
+    fechaCreacion: Timestamp.now(),
+    fechaActualizacion: Timestamp.now(),
   });
-  const [notaActual, setNotaActual] = useState("");
+
   const [selectedRedes, setSelectedRedes] = useState([]);
+  const [notaActual, setNotaActual] = useState("");
+
   const availableRedes = [
     "Facebook",
     "Instagram",
@@ -34,9 +38,10 @@ const AgregarCliente = ({ onClose }) => {
   ];
 
   const handleChange = (e) => {
-    setCliente({
-      ...cliente,
+    setPosibleCliente({
+      ...posibleCliente,
       [e.target.name]: e.target.value,
+      fechaActualizacion: Timestamp.now(),
     });
   };
 
@@ -44,15 +49,15 @@ const AgregarCliente = ({ onClose }) => {
     const { value, checked } = e.target;
     if (checked) {
       setSelectedRedes([...selectedRedes, value]);
-      setCliente({
-        ...cliente,
-        redesSociales: [...cliente.redesSociales, { tipo: value, url: "" }],
+      setPosibleCliente({
+        ...posibleCliente,
+        redesSociales: [...(posibleCliente.redesSociales || []), { tipo: value, url: "" }],
       });
     } else {
       setSelectedRedes(selectedRedes.filter((red) => red !== value));
-      setCliente({
-        ...cliente,
-        redesSociales: cliente.redesSociales.filter(
+      setPosibleCliente({
+        ...posibleCliente,
+        redesSociales: (posibleCliente.redesSociales || []).filter(
           (red) => red.tipo !== value
         ),
       });
@@ -60,20 +65,22 @@ const AgregarCliente = ({ onClose }) => {
   };
 
   const handleRedSocialChange = (index, field, value) => {
-    const nuevasRedes = [...cliente.redesSociales];
+    const nuevasRedes = [...(posibleCliente.redesSociales || [])];
     nuevasRedes[index][field] = value;
-    setCliente({
-      ...cliente,
+    setPosibleCliente({
+      ...posibleCliente,
       redesSociales: nuevasRedes,
+      fechaActualizacion: Timestamp.now(),
     });
   };
 
   const handleRemoveRedSocial = (index) => {
-    const nuevasRedes = [...cliente.redesSociales];
+    const nuevasRedes = [...(posibleCliente.redesSociales || [])];
     nuevasRedes.splice(index, 1);
-    setCliente({
-      ...cliente,
+    setPosibleCliente({
+      ...posibleCliente,
       redesSociales: nuevasRedes,
+      fechaActualizacion: Timestamp.now(),
     });
     const redTipo = selectedRedes[index];
     setSelectedRedes(selectedRedes.filter((red) => red !== redTipo));
@@ -84,59 +91,81 @@ const AgregarCliente = ({ onClose }) => {
       toast.error("La nota no puede estar vacía");
       return;
     }
-
+  
     const nuevaNota = {
       contenido: notaActual.trim(),
       timestamp: Timestamp.now(),
     };
-
-    setCliente({
-      ...cliente,
-      notas: [nuevaNota, ...cliente.notas],
+  
+    // Ejemplo: Incrementar leadScore por cada nota agregada
+    const nuevoLeadScore = (posibleCliente.leadScore || 0) + 10;
+  
+    setPosibleCliente({
+      ...posibleCliente,
+      notas: [nuevaNota, ...(posibleCliente.notas || [])],
+      leadScore: nuevoLeadScore,
+      fechaActualizacion: Timestamp.now(),
     });
-
+  
     setNotaActual("");
   };
 
   const handleEliminarNota = (index) => {
-    const nuevasNotas = [...cliente.notas];
+    const nuevasNotas = [...(posibleCliente.notas || [])];
     nuevasNotas.splice(index, 1);
-    setCliente({
-      ...cliente,
+    setPosibleCliente({
+      ...posibleCliente,
       notas: nuevasNotas,
+      fechaActualizacion: Timestamp.now(),
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validar campos obligatorios
+    if (
+      !posibleCliente.nombre ||
+      !posibleCliente.nombreNegocio ||
+      !posibleCliente.direccion ||
+      !posibleCliente.telefono ||
+      !posibleCliente.correo
+    ) {
+      toast.error("Por favor, completa todos los campos obligatorios.");
+      return;
+    }
+
     try {
-      await addDoc(collection(db, "clientes"), cliente);
-      toast.success("Cliente añadido exitosamente");
-      setCliente({
+      await addDoc(collection(db, "posiblesClientes"), posibleCliente);
+      toast.success("Posible cliente añadido exitosamente");
+      setPosibleCliente({
         nombre: "",
         nombreNegocio: "",
         direccion: "",
         telefono: "",
         correo: "",
-        sitioWebActual: "",
-        sitioWebAntiguo: "",
-        estado: "1er Desarrollo",
+        sitioWeb: "",
+        estado: "Nuevo",
         plan: "Inicial",
-        redesSociales: [],
+        leadScore: 0,
+        actividades: [],
+        tareas: [],
         notas: [],
+        fechaCreacion: Timestamp.now(),
+        fechaActualizacion: Timestamp.now(),
       });
       setSelectedRedes([]);
       setNotaActual("");
       onClose();
     } catch (error) {
-      console.error("Error añadiendo cliente: ", error);
-      toast.error("Error al añadir cliente");
+      console.error("Error añadiendo posible cliente: ", error);
+      toast.error("Error al añadir posible cliente");
     }
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 overflow-auto pt-24">
-      <div className="bg-white text-black rounded-lg shadow-lg w-11/12 max-w-2xl mx-auto p-6 relative">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 overflow-auto pt-24 px-4">
+      <div className="bg-white text-black rounded-lg shadow-lg w-full max-w-3xl mx-auto p-6 relative">
         {/* Botón de cerrar */}
         <button
           onClick={onClose}
@@ -158,8 +187,9 @@ const AgregarCliente = ({ onClose }) => {
           </svg>
         </button>
 
-        <h2 className="text-2xl mb-4 text-center">Agregar Nuevo Cliente</h2>
+        <h2 className="text-2xl mb-4 text-center">Agregar Posible Cliente</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Campos del Posible Cliente */}
           <div>
             <label htmlFor="nombre" className="block font-semibold">
               Nombre del cliente: <span className="text-red-500">*</span>
@@ -168,7 +198,7 @@ const AgregarCliente = ({ onClose }) => {
               type="text"
               id="nombre"
               name="nombre"
-              value={cliente.nombre}
+              value={posibleCliente.nombre}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
               required
@@ -182,7 +212,7 @@ const AgregarCliente = ({ onClose }) => {
               type="text"
               id="nombreNegocio"
               name="nombreNegocio"
-              value={cliente.nombreNegocio}
+              value={posibleCliente.nombreNegocio}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
               required
@@ -196,23 +226,10 @@ const AgregarCliente = ({ onClose }) => {
               type="text"
               id="direccion"
               name="direccion"
-              value={cliente.direccion}
+              value={posibleCliente.direccion}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
               required
-            />
-          </div>
-          <div>
-            <label htmlFor="maps" className="block font-semibold">
-              Dirección (URL Maps):
-            </label>
-            <input
-              type="text"
-              id="maps"
-              name="maps"
-              value={cliente.maps}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
             />
           </div>
           <div>
@@ -223,7 +240,7 @@ const AgregarCliente = ({ onClose }) => {
               type="tel"
               id="telefono"
               name="telefono"
-              value={cliente.telefono}
+              value={posibleCliente.telefono}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
               required
@@ -237,7 +254,7 @@ const AgregarCliente = ({ onClose }) => {
               type="email"
               id="correo"
               name="correo"
-              value={cliente.correo}
+              value={posibleCliente.correo}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
               required
@@ -262,47 +279,51 @@ const AgregarCliente = ({ onClose }) => {
             </div>
           </div>
 
-          {cliente.redesSociales.map((redSocial, index) => (
-            <div key={index} className="border p-3 rounded">
-              <div className="flex justify-between items-center">
-                <h4 className="font-semibold">{redSocial.tipo}</h4>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveRedSocial(index)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
+          {posibleCliente.redesSociales && posibleCliente.redesSociales.length > 0 && (
+            <div className="space-y-2">
+              {posibleCliente.redesSociales.map((redSocial, index) => (
+                <div key={index} className="border p-3 rounded">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-semibold">{redSocial.tipo}</h4>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveRedSocial(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="mt-2">
+                    <label className="block font-semibold">
+                      URL de {redSocial.tipo}:
+                    </label>
+                    <input
+                      type="url"
+                      value={redSocial.url}
+                      onChange={(e) =>
+                        handleRedSocialChange(index, "url", e.target.value)
+                      }
+                      className="w-full px-3 py-2 border rounded"
+                      required
                     />
-                  </svg>
-                </button>
-              </div>
-              <div className="mt-2">
-                <label className="block font-semibold">
-                  URL de {redSocial.tipo}:
-                </label>
-                <input
-                  type="url"
-                  value={redSocial.url}
-                  onChange={(e) =>
-                    handleRedSocialChange(index, "url", e.target.value)
-                  }
-                  className="w-full px-3 py-2 border rounded"
-                  required
-                />
-              </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
 
           {/* Sección para Agregar Notas */}
           <div>
@@ -323,8 +344,8 @@ const AgregarCliente = ({ onClose }) => {
               </button>
             </div>
             <div className="mt-4 space-y-2 max-h-60 overflow-y-auto">
-              {cliente.notas.length > 0 &&
-                cliente.notas.map((nota, index) => (
+              {posibleCliente.notas && posibleCliente.notas.length > 0 ? (
+                posibleCliente.notas.map((nota, index) => (
                   <div key={index} className="bg-gray-100 p-3 rounded shadow">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">
@@ -353,62 +374,14 @@ const AgregarCliente = ({ onClose }) => {
                     </div>
                     <p className="mt-2">{nota.contenido}</p>
                   </div>
-                ))}
+                ))
+              ) : (
+                <p className="text-gray-500">No hay notas agregadas.</p>
+              )}
             </div>
           </div>
 
-          <div>
-            <label htmlFor="sitioWebActual" className="block font-semibold">
-              Sitio Web Actual (URL):
-            </label>
-            <input
-              type="url"
-              id="sitioWebActual"
-              name="sitioWebActual"
-              value={cliente.sitioWebActual}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            />
-          </div>
-          <div>
-            <label htmlFor="sitioWebAntiguo" className="block font-semibold">
-              Sitio Web Antiguo (URL):
-            </label>
-            <input
-              type="text"
-              id="sitioWebAntiguo"
-              name="sitioWebAntiguo"
-              value={cliente.sitioWebAntiguo}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            />
-          </div>
-          <div>
-            <label htmlFor="estado" className="block font-semibold">
-              Estado:
-            </label>
-            <select
-              id="estado"
-              name="estado"
-              value={cliente.estado}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            >
-              <option value="1er Desarrollo">1er Desarrollo</option>
-              <option value="Listo para 1ra revision">
-                Listo para 1ra revision
-              </option>
-              <option value="2do Desarrollo">2do Desarrollo</option>
-              <option value="Listo para 2da revision">
-                Listo para 2da revision
-              </option>
-              <option value="Ajustes para entrega final">
-                Ajustes para entrega final
-              </option>
-              <option value="Listo para entregar">Listo para entregar</option>
-              <option value="En linea">En línea</option>
-            </select>
-          </div>
+          {/* Plan */}
           <div>
             <label htmlFor="plan" className="block font-semibold">
               Plan:
@@ -416,16 +389,38 @@ const AgregarCliente = ({ onClose }) => {
             <select
               id="plan"
               name="plan"
-              value={cliente.plan}
+              value={posibleCliente.plan}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
             >
-              <option value="Inicial ($350/mes)">Inicial ($350/mes)</option>
-              <option value="Intermedio ($500/mes)">Intermedio ($500/mes)</option>
-              <option value="Pro ($900/mes)">Pro ($900/mes)</option>
+              <option value="Inicial">Inicial ($350/mes)</option>
+              <option value="Intermedio">Intermedio ($500/mes)</option>
+              <option value="Pro">Pro ($900/mes)</option>
             </select>
           </div>
-          <div className="flex justify-end space-x-2">
+
+          {/* Estado */}
+          <div>
+            <label htmlFor="estado" className="block font-semibold">
+              Estado:
+            </label>
+            <select
+              id="estado"
+              name="estado"
+              value={posibleCliente.estado}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded"
+            >
+              <option value="Nuevo">Nuevo</option>
+              <option value="Contactado">Contactado</option>
+              <option value="Calificado">Calificado</option>
+              <option value="Propuesta Enviada">Propuesta Enviada</option>
+              <option value="Cerrado">Cerrado</option>
+            </select>
+          </div>
+
+          {/* Botones de Acción */}
+          <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2">
             <button
               type="button"
               onClick={onClose}
@@ -437,7 +432,7 @@ const AgregarCliente = ({ onClose }) => {
               type="submit"
               className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
             >
-              Añadir Cliente
+              Añadir Posible Cliente
             </button>
           </div>
         </form>
@@ -446,4 +441,4 @@ const AgregarCliente = ({ onClose }) => {
   );
 };
 
-export default AgregarCliente;
+export default AgregarPosibleCliente;
