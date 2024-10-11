@@ -171,7 +171,7 @@ const AgregarCliente = ({ onClose }) => {
               value={cliente.nombre}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
-              required
+              
             />
           </div>
           <div>
@@ -185,7 +185,7 @@ const AgregarCliente = ({ onClose }) => {
               value={cliente.nombreNegocio}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
-              required
+              
             />
           </div>
           <div>
@@ -199,7 +199,7 @@ const AgregarCliente = ({ onClose }) => {
               value={cliente.direccion}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
-              required
+              
             />
           </div>
           <div>
@@ -226,7 +226,7 @@ const AgregarCliente = ({ onClose }) => {
               value={cliente.telefono}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
-              required
+              
             />
           </div>
           <div>
@@ -240,7 +240,7 @@ const AgregarCliente = ({ onClose }) => {
               value={cliente.correo}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
-              required
+              
             />
           </div>
 
@@ -298,7 +298,7 @@ const AgregarCliente = ({ onClose }) => {
                     handleRedSocialChange(index, "url", e.target.value)
                   }
                   className="w-full px-3 py-2 border rounded"
-                  required
+                  
                 />
               </div>
             </div>

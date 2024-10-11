@@ -165,7 +165,6 @@ const Accordion = ({ items }) => {
                       value={editData.nombre}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
                     />
                   </div>
                   <div>
@@ -183,7 +182,7 @@ const Accordion = ({ items }) => {
                       value={editData.nombreNegocio}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -200,7 +199,7 @@ const Accordion = ({ items }) => {
                       value={editData.direccion}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -214,7 +213,7 @@ const Accordion = ({ items }) => {
                       value={editData.maps}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -231,7 +230,7 @@ const Accordion = ({ items }) => {
                       value={editData.telefono}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
+                      
                     />
                   </div>
                   <div>
@@ -249,7 +248,7 @@ const Accordion = ({ items }) => {
                       value={editData.correo}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
+                      
                     />
                   </div>
 
@@ -299,7 +298,7 @@ const Accordion = ({ items }) => {
                               )
                             }
                             className="w-full px-3 py-2 border rounded"
-                            required
+                            
                           >
                             <option value="">Seleccione</option>
                             <option value="Facebook">Facebook</option>
@@ -325,7 +324,7 @@ const Accordion = ({ items }) => {
                               )
                             }
                             className="w-full px-3 py-2 border rounded"
-                            required
+                            
                           />
                         </div>
                       </div>

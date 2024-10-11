@@ -48,7 +48,7 @@ const AgregarTarea = ({ clienteId, onClose }) => {
             type="text"
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
-            required
+            
             className="border border-gray-300 rounded p-2 w-full"
           />
         </div>
@@ -57,7 +57,7 @@ const AgregarTarea = ({ clienteId, onClose }) => {
           <textarea
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
-            required
+            
             className="border border-gray-300 rounded p-2 w-full"
           />
         </div>
@@ -67,7 +67,7 @@ const AgregarTarea = ({ clienteId, onClose }) => {
             type="date"
             value={fechaVencimiento}
             onChange={(e) => setFechaVencimiento(e.target.value)}
-            required
+            
             className="border border-gray-300 rounded p-2 w-full"
           />
         </div>

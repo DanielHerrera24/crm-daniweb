@@ -11,6 +11,7 @@ import {
 import { db } from "../firebase";
 import { toast } from "react-toastify";
 import AgregarActividad from "./AgregarActividad";
+import { FaPhoneAlt, FaWhatsapp } from "react-icons/fa";
 
 const AccordionPosiblesClientes = ({ items }) => {
   const [activeId, setActiveId] = useState(null);
@@ -116,9 +117,8 @@ const AccordionPosiblesClientes = ({ items }) => {
       direccion: cliente.direccion,
       telefono: cliente.telefono,
       correo: cliente.correo,
-      sitioWeb: cliente.sitioWeb,
       estado: cliente.estado,
-      plan: cliente.plan,
+      maps: cliente.maps,
       leadScore: cliente.leadScore || 0,
       redesSociales: cliente.redesSociales || [],
       actividades: cliente.actividades || [],
@@ -197,31 +197,31 @@ const AccordionPosiblesClientes = ({ items }) => {
 
   const handleEditSave = async (id) => {
     const clienteRef = doc(db, "posiblesClientes", id);
-  
+
     try {
       // Obtener el documento actual del cliente
       const clienteDocSnapshot = await getDoc(clienteRef);
-  
+
       if (clienteDocSnapshot.exists()) {
         const clienteData = clienteDocSnapshot.data();
-  
+
         // Asegúrate de que editData.actividades sea un arreglo
-        const actividadesNuevas = Array.isArray(editData.actividades) 
-          ? editData.actividades 
+        const actividadesNuevas = Array.isArray(editData.actividades)
+          ? editData.actividades
           : [];
-  
+
         // Combina las actividades existentes con las actividades de `editData`
         const actividadesActualizadas = [
           ...(clienteData.actividades || []), // Actividades previas
           ...actividadesNuevas, // Actividades nuevas/modificadas
         ];
-  
+
         // Actualizar Firestore con el resto de los datos de `editData` y las actividades combinadas
         await updateDoc(clienteRef, {
           ...editData,
           actividades: actividadesActualizadas, // Actualizamos el campo de actividades
         });
-  
+
         toast.success("Posible cliente actualizado exitosamente");
         setEditModeId(null);
       } else {
@@ -231,7 +231,7 @@ const AccordionPosiblesClientes = ({ items }) => {
       console.error("Error actualizando el posible cliente: ", error);
       toast.error("Error al actualizar el posible cliente");
     }
-  };  
+  };
 
   const handleEditCancel = () => {
     setEditModeId(null);
@@ -298,7 +298,6 @@ const AccordionPosiblesClientes = ({ items }) => {
                       value={editData.nombre}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
                     />
                   </div>
                   <div>
@@ -316,7 +315,6 @@ const AccordionPosiblesClientes = ({ items }) => {
                       value={editData.nombreNegocio}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
                     />
                   </div>
                   <div>
@@ -333,7 +331,19 @@ const AccordionPosiblesClientes = ({ items }) => {
                       value={editData.direccion}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="maps" className="block font-semibold">
+                      Dirección (URL Maps):
+                    </label>
+                    <input
+                      type="text"
+                      id={`maps-${cliente.id}`}
+                      name="maps"
+                      value={editData.maps}
+                      onChange={handleEditChange}
+                      className="w-full px-3 py-2 border rounded"
                     />
                   </div>
                   <div>
@@ -350,7 +360,6 @@ const AccordionPosiblesClientes = ({ items }) => {
                       value={editData.telefono}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
                     />
                   </div>
                   <div>
@@ -368,7 +377,6 @@ const AccordionPosiblesClientes = ({ items }) => {
                       value={editData.correo}
                       onChange={handleEditChange}
                       className="w-full px-3 py-2 border rounded"
-                      required
                     />
                   </div>
 
@@ -462,7 +470,7 @@ const AccordionPosiblesClientes = ({ items }) => {
                                   )
                                 }
                                 className="w-full px-3 py-2 border rounded"
-                                required
+                                
                               />
                             </div>
                           </div>
@@ -619,27 +627,6 @@ const AccordionPosiblesClientes = ({ items }) => {
                     </div>
                   </div>
 
-                  {/* Plan */}
-                  <div>
-                    <label
-                      htmlFor={`plan-${cliente.id}`}
-                      className="block font-semibold"
-                    >
-                      Plan:
-                    </label>
-                    <select
-                      id={`plan-${cliente.id}`}
-                      name="plan"
-                      value={editData.plan}
-                      onChange={handleEditChange}
-                      className="w-full px-3 py-2 border rounded"
-                    >
-                      <option value="Inicial">Inicial ($350/mes)</option>
-                      <option value="Intermedio">Intermedio ($500/mes)</option>
-                      <option value="Pro">Pro ($900/mes)</option>
-                    </select>
-                  </div>
-
                   {/* Estado */}
                   <div>
                     <label
@@ -657,10 +644,10 @@ const AccordionPosiblesClientes = ({ items }) => {
                     >
                       <option value="Nuevo">Nuevo</option>
                       <option value="Contactado">Contactado</option>
-                      <option value="Calificado">Calificado</option>
                       <option value="Propuesta Enviada">
                         Propuesta Enviada
                       </option>
+                      <option value="Rechazo">Rechazo</option>
                       <option value="Cerrado">Cerrado</option>
                     </select>
                   </div>
@@ -688,13 +675,54 @@ const AccordionPosiblesClientes = ({ items }) => {
                     <strong>Nombre del Negocio:</strong> {cliente.nombreNegocio}
                   </p>
                   <p>
-                    <strong>Dirección:</strong> {cliente.direccion}
+                    <strong>Dirección (URL Maps):</strong>{" "}
+                    <a
+                      href={cliente.maps}
+                      className="text-blue-500 underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Link a Maps
+                    </a>
                   </p>
+                  <div className="flex flex-wrap gap-2">
+                    <strong>Teléfono:</strong>
+                    <div className="flex gap-1 items-center">
+                      <FaWhatsapp color="#25D366" size={20} />{" "}
+                      <a
+                        href={`https://wa.me/${cliente.telefono.replace(
+                          /\s+/g,
+                          ""
+                        )}`}
+                        className="text-[#25D366] underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {cliente.telefono}
+                      </a>
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      <FaPhoneAlt color="#2c94ea" size={16} />
+                      <a
+                        href={`tel://${cliente.telefono.replace(/\s+/g, "")}`}
+                        className="text-[#2c94ea] underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {cliente.telefono}
+                      </a>
+                    </div>
+                  </div>
                   <p>
-                    <strong>Teléfono:</strong> {cliente.telefono}
-                  </p>
-                  <p>
-                    <strong>Correo:</strong> {cliente.correo}
+                    <strong>Correo:</strong>{" "}
+                    <a
+                      href={`mailto:${cliente.correo}`}
+                      className="text-blue-500 underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {cliente.correo}
+                    </a>
                   </p>
                   <p>
                     <strong>Sitio Web:</strong>{" "}
@@ -725,10 +753,10 @@ const AccordionPosiblesClientes = ({ items }) => {
                     >
                       <option value="Nuevo">Nuevo</option>
                       <option value="Contactado">Contactado</option>
-                      <option value="Calificado">Calificado</option>
                       <option value="Propuesta Enviada">
                         Propuesta Enviada
                       </option>
+                      <option value="Rechazo">Rechazo</option>
                       <option value="Cerrado">Cerrado</option>
                     </select>
                   </div>
@@ -790,7 +818,11 @@ const AccordionPosiblesClientes = ({ items }) => {
                                     : "No disponible"}
                                 </span>
                               </div>
-                              <p className="mt-2">{actividad.contenido}</p>
+                              <h2 className="mt-2 text-xl">
+                                {actividad.titulo}
+                              </h2>
+                              <p className="mt-2">{actividad.descripcion}</p>
+                              <h3 className="mt-2">{actividad.notas}</h3>
 
                               {/* Estado de la actividad */}
                               <div className="mt-2">

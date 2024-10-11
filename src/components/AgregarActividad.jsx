@@ -55,14 +55,14 @@ const AgregarActividad = ({ clienteId, onClose }) => {
             placeholder="Título de la actividad"
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
-            required
+            
             className="border border-gray-300 rounded p-2 mb-4 w-full"
           />
           <textarea
             placeholder="Descripción"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
-            required
+            
             className="border border-gray-300 rounded p-2 mb-4 w-full"
           />
           {/* Campo de texto para la fecha */}
@@ -71,7 +71,7 @@ const AgregarActividad = ({ clienteId, onClose }) => {
             placeholder="Fecha (dd/mm/yyyy)"
             value={fecha} // No se formatea automáticamente, se ingresa como texto
             onChange={(e) => setFecha(e.target.value)}
-            required
+            
             className="border border-gray-300 rounded p-2 mb-4 w-full"
           />
           <textarea
