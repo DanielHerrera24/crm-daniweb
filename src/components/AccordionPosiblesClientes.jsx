@@ -736,85 +736,92 @@ const AccordionPosiblesClientes = ({ items }) => {
               ) : (
                 // Modo de Visualización
                 <div className="space-y-2">
-                  <p>
-                    <strong>Nombre del Negocio:</strong> {cliente.nombreNegocio}
-                  </p>
-                  {/* Maps */}
-                  <p>
-                    <strong>Dirección (URL Maps):</strong>{" "}
-                    <a
-                      href={cliente.maps}
-                      className="text-blue-500 underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Link a Maps
-                    </a>
-                  </p>
-                  <div className="telefono flex flex-wrap gap-2">
-                    <strong>Teléfono:</strong>
-                    <div className="flex gap-1 items-center">
-                      <FaWhatsapp color="#25D366" size={20} />{" "}
+                  {/* Nombre del Negocio */}
+                  {cliente.nombreNegocio && (
+                    <div className="flex gap-1 wrap">
+                      <strong>Nombre del Negocio:</strong>{" "}
+                      <p>{cliente.nombreNegocio}</p>
+                    </div>
+                  )}
+
+                  {/* Dirección (URL Maps) */}
+                  {cliente.maps && (
+                    <div className="wrap">
+                      <strong>Dirección (URL Maps):</strong>{" "}
                       <a
-                        href={`https://wa.me/${cliente.telefono.replace(
-                          /\s+/g,
-                          ""
-                        )}`}
-                        className="text-[#25D366] underline"
+                        href={cliente.maps}
+                        className="text-blue-500 underline"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        {cliente.telefono}
+                        Link a Maps
                       </a>
                     </div>
-                    <div className="flex gap-1 items-center">
-                      <FaPhoneAlt color="#2c94ea" size={16} />
-                      <a
-                        href={`tel://${cliente.telefono.replace(/\s+/g, "")}`}
-                        className="text-[#2c94ea] underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {cliente.telefono}
-                      </a>
+                  )}
+
+                  {/* Teléfono */}
+                  {cliente.telefono && (
+                    <div className="telefono flex flex-wrap gap-2">
+                      <strong>Teléfono:</strong>
+                      <div className="flex gap-1 items-center">
+                        <FaWhatsapp color="#25D366" size={20} />{" "}
+                        <a
+                          href={`https://wa.me/${cliente.telefono.replace(
+                            /\s+/g,
+                            ""
+                          )}`}
+                          className="text-[#25D366] underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {cliente.telefono}
+                        </a>
+                      </div>
+                      <div className="flex gap-1 items-center">
+                        <FaPhoneAlt color="#2c94ea" size={16} />
+                        <a
+                          href={`tel://${cliente.telefono.replace(/\s+/g, "")}`}
+                          className="text-[#2c94ea] underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {cliente.telefono}
+                        </a>
+                      </div>
                     </div>
-                  </div>
+                  )}
+
                   {/* Correo */}
-                  <p>
-                    <strong>Correo:</strong>{" "}
-                    <a
-                      href={`mailto:${cliente.correo}`}
-                      className="text-blue-500 underline"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {cliente.correo}
-                    </a>
-                  </p>
+                  {cliente.correo && (
+                    <p>
+                      <strong>Correo:</strong>{" "}
+                      <a
+                        href={`mailto:${cliente.correo}`}
+                        className="text-blue-500 underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {cliente.correo}
+                      </a>
+                    </p>
+                  )}
+
                   {/* Estado */}
-                  <div>
-                    <strong>Estado:</strong>
-                    <select
-                      value={estadoCliente[cliente.id] || cliente.estado}
-                      onChange={(e) =>
-                        handleClienteEstadoChange(cliente.id, e.target.value)
-                      }
-                      className="border p-2 rounded w-full mt-1"
-                    >
-                      <option value="Nuevo">Nuevo</option>
-                      <option value="Contactado">Contactado</option>
-                      <option value="Propuesta Enviada">
-                        Propuesta Enviada
-                      </option>
-                      <option value="Rechazo">Rechazo</option>
-                      <option value="Cerrado">Cerrado</option>
-                    </select>
-                  </div>
+                  {cliente.estado && (
+                    <div className="flex gap-1">
+                      <strong>Estado:</strong>
+                      <p
+                        className=""
+                      >
+                        {estadoCliente[cliente.id] || cliente.estado}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Redes Sociales */}
                   <div>
                     <strong>Redes Sociales:</strong>
-                    <ul className="list-disc list-inside">
+                    <ul>
                       {cliente.redesSociales &&
                       cliente.redesSociales.length > 0 ? (
                         cliente.redesSociales.map((red, idx) => (
@@ -843,7 +850,7 @@ const AccordionPosiblesClientes = ({ items }) => {
                   {/* Actividades */}
                   <div>
                     <strong>Actividades Pendientes:</strong>
-                    <div className="mt-2 space-y-2 max-w-[600px]">
+                    <div className="space-y-2 max-w-[600px]">
                       {cliente.actividades && cliente.actividades.length > 0 ? (
                         cliente.actividades
                           .filter(
@@ -924,7 +931,7 @@ const AccordionPosiblesClientes = ({ items }) => {
                     </div>
 
                     <strong>Actividades Realizadas:</strong>
-                    <div className="mt-4 space-y-2 max-w-[600px]">
+                    <div className="space-y-2 max-w-[600px]">
                       {cliente.actividades && cliente.actividades.length > 0 ? (
                         cliente.actividades
                           .filter(

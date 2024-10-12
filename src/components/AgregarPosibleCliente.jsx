@@ -12,9 +12,7 @@ const AgregarPosibleCliente = ({ onClose }) => {
     direccion: "",
     telefono: "",
     correo: "",
-    sitioWeb: "",
     estado: "Nuevo",
-    plan: "Inicial",
     leadScore: 0,
     actividades: [],
     tareas: [],
@@ -192,7 +190,7 @@ const AgregarPosibleCliente = ({ onClose }) => {
           {/* Campos del Posible Cliente */}
           <div>
             <label htmlFor="nombre" className="block font-semibold">
-              Nombre del cliente: <span className="text-red-500">*</span>
+              Nombre del cliente: 
             </label>
             <input
               type="text"
@@ -206,7 +204,7 @@ const AgregarPosibleCliente = ({ onClose }) => {
           </div>
           <div>
             <label htmlFor="nombreNegocio" className="block font-semibold">
-              Nombre del Negocio: <span className="text-red-500">*</span>
+              Nombre del Negocio: 
             </label>
             <input
               type="text"
@@ -220,7 +218,7 @@ const AgregarPosibleCliente = ({ onClose }) => {
           </div>
           <div>
             <label htmlFor="direccion" className="block font-semibold">
-              Dirección: <span className="text-red-500">*</span>
+              Dirección: 
             </label>
             <input
               type="text"
@@ -234,7 +232,7 @@ const AgregarPosibleCliente = ({ onClose }) => {
           </div>
           <div>
             <label htmlFor="telefono" className="block font-semibold">
-              Teléfono: <span className="text-red-500">*</span>
+              Teléfono: 
             </label>
             <input
               type="tel"
@@ -248,7 +246,7 @@ const AgregarPosibleCliente = ({ onClose }) => {
           </div>
           <div>
             <label htmlFor="correo" className="block font-semibold">
-              Correo Electrónico: <span className="text-red-500">*</span>
+              Correo Electrónico: 
             </label>
             <input
               type="email"
@@ -379,24 +377,6 @@ const AgregarPosibleCliente = ({ onClose }) => {
                 <p className="text-gray-500">No hay notas agregadas.</p>
               )}
             </div>
-          </div>
-
-          {/* Plan */}
-          <div>
-            <label htmlFor="plan" className="block font-semibold">
-              Plan:
-            </label>
-            <select
-              id="plan"
-              name="plan"
-              value={posibleCliente.plan}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded"
-            >
-              <option value="Inicial">Inicial ($350/mes)</option>
-              <option value="Intermedio">Intermedio ($500/mes)</option>
-              <option value="Pro">Pro ($900/mes)</option>
-            </select>
           </div>
 
           {/* Estado */}

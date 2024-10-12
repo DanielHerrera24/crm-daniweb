@@ -9,8 +9,11 @@ import {
 import { toast } from 'react-toastify';
 import AgregarPosibleCliente from './AgregarPosibleCliente';
 import Accordion from './AccordionPosiblesClientes';
+import { useNavigate } from "react-router-dom";
+import { FaArrowLeft } from 'react-icons/fa';
 
 const PosiblesClientes = () => {
+  const navigate = useNavigate();
   const [posiblesClientes, setPosiblesClientes] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -89,8 +92,14 @@ const PosiblesClientes = () => {
   };
 
   return (
-    <div className="min-h-auto bg-gray-100 p-4">
-      <h2 className="text-2xl mb-4 text-black">Posibles Clientes</h2>
+    <div className="min-h-auto bg-[#2478bc] p-4 rounded-xl text-white">
+      <button
+        onClick={() => navigate(-1)}
+        className="bg-white shadow-lg border border-black rounded-full p-3 text-red-500"
+      >
+        <FaArrowLeft size={24} />
+      </button>
+      <h2 className="text-center text-2xl mb-4">Posibles Clientes</h2>
 
       {/* Botón para abrir el modal */}
       <div className="flex justify-end mb-4">
@@ -123,7 +132,7 @@ const PosiblesClientes = () => {
           <span className="font-semibold">Ordenar por Fecha:</span>
           <button
             onClick={handleSortOrderChange}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 flex items-center"
+            className="px-4 py-2 bg-white text-black rounded hover:bg-blue-600 flex items-center"
           >
             {sortOrder === 'asc' ? 'Más Antiguos' : 'Más Recientes'}
             <svg
