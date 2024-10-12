@@ -4,6 +4,7 @@ import { useState } from "react";
 import { db } from "../firebase"; // Asegúrate de importar Firestore
 import { arrayUnion, doc, updateDoc } from "firebase/firestore";
 import { toast } from "react-toastify"; // Opción para mostrar notificaciones si usas react-toastify
+import { v4 as uuidv4 } from "uuid"; // Importa uuid para generar ids únicos
 
 const AgregarActividad = ({ clienteId, onClose }) => {
   const [titulo, setTitulo] = useState("");
@@ -17,29 +18,36 @@ const AgregarActividad = ({ clienteId, onClose }) => {
 
     // Validar que no haya campos vacíos
     if (!titulo || !descripcion || !fecha) {
-      toast.error("Todos los campos son obligatorios"); // Si usas react-toastify para mostrar mensajes
+      toast.error("Todos los campos son obligatorios");
       return;
     }
 
     setIsSubmitting(true); // Evitar múltiples envíos
 
     try {
-      // Crea la nueva actividad con los datos ingresados
-      const newActivity = { titulo, descripcion, fecha, notas };
+      // Crea la nueva actividad con los datos ingresados y un id único
+      const nuevaActividad = {
+        id: uuidv4(), // Genera un id único
+        titulo,
+        descripcion,
+        fecha,
+        notas,
+        estado: "Pendiente",
+      };
 
       // Referencia al documento del cliente en Firestore
       const clienteDoc = doc(db, "posiblesClientes", clienteId);
 
-      // Actualiza el documento del cliente añadiendo la nueva actividad
+      // Añade la nueva actividad al array de actividades
       await updateDoc(clienteDoc, {
-        actividades: arrayUnion(newActivity), // Añade la nueva actividad al array de actividades
+        actividades: arrayUnion(nuevaActividad),
       });
 
-      toast.success("Actividad agregada correctamente"); // Mensaje de éxito si usas react-toastify
+      toast.success("Actividad agregada correctamente");
       onClose(); // Cierra el modal después de agregar la actividad
     } catch (error) {
       console.error("Error al agregar actividad:", error);
-      toast.error("Error al agregar actividad"); // Mensaje de error si usas react-toastify
+      toast.error("Error al agregar actividad");
     } finally {
       setIsSubmitting(false); // Habilitar el botón de nuevo
     }
@@ -55,14 +63,12 @@ const AgregarActividad = ({ clienteId, onClose }) => {
             placeholder="Título de la actividad"
             value={titulo}
             onChange={(e) => setTitulo(e.target.value)}
-            
             className="border border-gray-300 rounded p-2 mb-4 w-full"
           />
           <textarea
             placeholder="Descripción"
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
-            
             className="border border-gray-300 rounded p-2 mb-4 w-full"
           />
           {/* Campo de texto para la fecha */}
@@ -71,7 +77,6 @@ const AgregarActividad = ({ clienteId, onClose }) => {
             placeholder="Fecha (dd/mm/yyyy)"
             value={fecha} // No se formatea automáticamente, se ingresa como texto
             onChange={(e) => setFecha(e.target.value)}
-            
             className="border border-gray-300 rounded p-2 mb-4 w-full"
           />
           <textarea

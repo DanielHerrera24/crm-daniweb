@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 // src/components/AccordionPosiblesClientes.jsx
 import { useState, memo } from "react";
@@ -68,41 +69,44 @@ const AccordionPosiblesClientes = ({ items }) => {
     }
   };
 
-  const handleEstadoChange = async (clienteId, actividadIdx, nuevoEstado) => {
-    // Actualizamos el estado de la actividad en el estado local
-    setEstado((prevEstado) => {
-      const actividadesActualizadas = (
-        prevEstado[clienteId]?.actividades || []
-      ).map((actividad, idx) =>
-        idx === actividadIdx ? { ...actividad, estado: nuevoEstado } : actividad
-      );
-
-      return {
-        ...prevEstado,
-        [clienteId]: {
-          actividades: actividadesActualizadas,
-        },
-      };
-    });
-
-    // Referencia al cliente en Firestore
-    const clienteRef = doc(db, "posiblesClientes", clienteId);
-
-    // Actualizamos la actividad específica en Firestore
+  const handleEstadoChange = async (clienteId, actividadId, nuevoEstado) => {
     try {
-      await updateDoc(clienteRef, {
-        [`actividades.${actividadIdx}.estado`]: nuevoEstado,
-        fechaActualizacion: Timestamp.now(),
-      });
+      // Obtenemos el documento del cliente actual
+      const clienteRef = doc(db, "posiblesClientes", clienteId);
+      const clienteDocSnapshot = await getDoc(clienteRef);
 
-      // Si el nuevo estado es "Realizado", también actualizamos la fecha de realización
-      if (nuevoEstado === "Realizado") {
-        await updateDoc(clienteRef, {
-          [`actividades.${actividadIdx}.fechaRealizacion`]: Timestamp.now(),
-        });
+      if (clienteDocSnapshot.exists()) {
+        const clienteData = clienteDocSnapshot.data();
+
+        // Encuentra la actividad por su id en lugar de su índice
+        const actividadIndex = clienteData.actividades.findIndex(
+          (actividad) => actividad.id === actividadId
+        );
+
+        if (actividadIndex !== -1) {
+          const actividadActual = clienteData.actividades[actividadIndex];
+
+          // Creamos una nueva actividad con toda la información existente, pero con el nuevo estado y fecha de realización si aplica
+          const actividadActualizada = {
+            ...actividadActual,
+            estado: nuevoEstado,
+            fechaRealizacion: nuevoEstado === "Realizado" ? new Date() : null, // Asignamos la fecha actual solo si está realizado
+          };
+
+          // Actualizamos solo la actividad específica manteniendo el resto de las actividades intactas
+          const actividadesActualizadas = clienteData.actividades.map(
+            (actividad, idx) =>
+              idx === actividadIndex ? actividadActualizada : actividad
+          );
+
+          // Actualizamos el documento en Firestore con las actividades actualizadas
+          await updateDoc(clienteRef, { actividades: actividadesActualizadas });
+
+          toast.success("Estado de la actividad actualizado correctamente");
+        } else {
+          toast.error("Actividad no encontrada");
+        }
       }
-
-      toast.success("Estado de la actividad actualizado");
     } catch (error) {
       console.error("Error al actualizar el estado: ", error);
       toast.error("Error al actualizar el estado");
@@ -205,21 +209,34 @@ const AccordionPosiblesClientes = ({ items }) => {
       if (clienteDocSnapshot.exists()) {
         const clienteData = clienteDocSnapshot.data();
 
-        // Asegúrate de que editData.actividades sea un arreglo
+        // Verificamos si editData.actividades existe y es un array
         const actividadesNuevas = Array.isArray(editData.actividades)
-          ? editData.actividades
+          ? editData.actividades.filter(
+              (actividad) =>
+                !clienteData.actividades.some(
+                  (actExistente) =>
+                    actExistente.titulo === actividad.titulo &&
+                    actExistente.descripcion === actividad.descripcion &&
+                    actExistente.fecha === actividad.fecha
+                )
+            )
           : [];
 
-        // Combina las actividades existentes con las actividades de `editData`
+        // Combina solo las nuevas actividades que no existen con las actividades existentes
         const actividadesActualizadas = [
-          ...(clienteData.actividades || []), // Actividades previas
-          ...actividadesNuevas, // Actividades nuevas/modificadas
+          ...(clienteData.actividades || []),
+          ...actividadesNuevas,
         ];
+
+        // Limpia el objeto editData para eliminar cualquier valor `undefined`
+        const cleanEditData = Object.fromEntries(
+          Object.entries(editData).filter(([_, value]) => value !== undefined)
+        );
 
         // Actualizar Firestore con el resto de los datos de `editData` y las actividades combinadas
         await updateDoc(clienteRef, {
-          ...editData,
-          actividades: actividadesActualizadas, // Actualizamos el campo de actividades
+          ...cleanEditData,
+          actividades: actividadesActualizadas,
         });
 
         toast.success("Posible cliente actualizado exitosamente");
@@ -264,6 +281,26 @@ const AccordionPosiblesClientes = ({ items }) => {
     clienteRef.update({
       [actividadRef]: new Date(nuevaFecha), // Convertimos la fecha a un objeto Date
     });
+  };
+
+  const handleGuardarRealizado = async (
+    clienteId,
+    actividadIdx,
+    fechaRealizacion
+  ) => {
+    const clienteRef = doc(db, "posiblesClientes", clienteId);
+
+    try {
+      await updateDoc(clienteRef, {
+        [`actividades.${actividadIdx}.estado`]: "Realizado",
+        [`actividades.${actividadIdx}.fechaRealizacion`]: fechaRealizacion,
+      });
+
+      toast.success("Actividad marcada como realizada y guardada.");
+    } catch (error) {
+      console.error("Error al actualizar la actividad:", error);
+      toast.error("Error al actualizar la actividad.");
+    }
   };
 
   return (
@@ -470,7 +507,6 @@ const AccordionPosiblesClientes = ({ items }) => {
                                   )
                                 }
                                 className="w-full px-3 py-2 border rounded"
-                                
                               />
                             </div>
                           </div>
@@ -497,74 +533,123 @@ const AccordionPosiblesClientes = ({ items }) => {
                       clienteId={cliente.id}
                     />
                   )}
+
+                  {/* Editar y visualizar actividades */}
                   <ul>
+                    <h3 className="font-bold text-lg">
+                      Actividades Pendientes
+                    </h3>
                     {cliente.actividades && cliente.actividades.length > 0 ? (
-                      cliente.actividades.map((actividad, index) => (
-                        <li
-                          key={index}
-                          className="bg-gray-100 p-4 rounded shadow-md hover:bg-gray-200 transition duration-200"
-                        >
-                          <h4 className="font-bold text-md">
-                            {actividad.titulo}
-                          </h4>
-                          <p className="text-sm">{actividad.descripcion}</p>
+                      cliente.actividades
+                        .filter((actividad) => actividad.estado === "Pendiente")
+                        .map((actividad, index) => (
+                          <li
+                            key={index}
+                            className="p-4 rounded shadow-md transition duration-200 bg-gray-100"
+                          >
+                            <h4 className="font-bold text-md">
+                              {actividad.titulo}
+                            </h4>
+                            <p className="text-sm">{actividad.descripcion}</p>
+                            <p className="text-xs text-gray-500">
+                              Fecha:{" "}
+                              {actividad.fecha && actividad.fecha.toDate
+                                ? actividad.fecha.toDate().toLocaleDateString()
+                                : "Fecha no disponible"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Notas: {actividad.notas}
+                            </p>
 
-                          {/* Convertimos la fecha a texto si es un timestamp */}
-                          <p className="text-xs text-gray-500">
-                            Fecha:{" "}
-                            {actividad.fecha && actividad.fecha.toDate
-                              ? actividad.fecha.toDate().toLocaleDateString() // Formato de la fecha
-                              : "Fecha no disponible"}
-                          </p>
-
-                          <p className="text-xs text-gray-500">
-                            Notas: {actividad.notas}
-                          </p>
-
-                          {/* Estado de la actividad con opciones */}
-                          <div className="mt-2">
-                            <label className="mr-2">Estado:</label>
-                            <select
-                              className="border rounded p-1"
-                              value={actividad.estado || "Pendiente"}
-                              onChange={(e) =>
-                                handleEstadoChange(
-                                  cliente.id,
-                                  index,
-                                  e.target.value
-                                )
-                              }
-                            >
-                              <option value="Pendiente">Pendiente</option>
-                              <option value="Realizado">Realizado</option>
-                            </select>
-                          </div>
-
-                          {/* Si el estado es "Realizado", mostramos el campo para ingresar la fecha como texto */}
-                          {actividad.estado === "Realizado" && (
+                            {/* Estado de la actividad con opciones */}
                             <div className="mt-2">
-                              <label className="block text-sm text-gray-600">
-                                Fecha de realización:
-                              </label>
-                              <input
-                                type="text"
+                              <label className="mr-2">Estado:</label>
+                              <select
                                 className="border rounded p-1"
-                                placeholder="dd/mm/yyyy"
-                                value={actividad.fechaRealizacion || ""}
+                                value={actividad.estado || "Pendiente"}
                                 onChange={(e) =>
-                                  handleFechaRealizacionChange(
+                                  handleEstadoChange(
                                     cliente.id,
                                     index,
                                     e.target.value
                                   )
                                 }
-                              />
+                              >
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="Realizado">Realizado</option>
+                              </select>
                             </div>
-                          )}
-                        </li>
-                      ))
+
+                            {/* Mostrar campo para ingresar fecha si la actividad está realizada */}
+                            {actividad.estado === "Realizado" && (
+                              <div className="mt-2">
+                                <label className="block text-sm text-gray-600">
+                                  Fecha de realización:
+                                </label>
+                                <input
+                                  type="date"
+                                  className="border rounded p-1"
+                                  value={
+                                    actividad.fechaRealizacion &&
+                                    actividad.fechaRealizacion.toDate
+                                      ? actividad.fechaRealizacion
+                                          .toDate()
+                                          .toISOString()
+                                          .split("T")[0]
+                                      : ""
+                                  }
+                                  onChange={(e) =>
+                                    handleFechaRealizacionChange(
+                                      cliente.id,
+                                      index,
+                                      new Date(e.target.value)
+                                    )
+                                  }
+                                />
+                              </div>
+                            )}
+                          </li>
+                        ))
                     ) : (
-                      <p className="text-gray-500">No hay actividades.</p>
+                      <p className="text-gray-500">
+                        No hay actividades pendientes.
+                      </p>
+                    )}
+
+                    {/* Sección de actividades realizadas */}
+                    <h3 className="font-bold text-lg mt-4">
+                      Actividades Realizadas
+                    </h3>
+                    {cliente.actividades && cliente.actividades.length > 0 ? (
+                      cliente.actividades
+                        .filter((actividad) => actividad.estado === "Realizado")
+                        .map((actividad, index) => (
+                          <li
+                            key={index}
+                            className="bg-green-100 p-4 rounded shadow-md hover:bg-green-200 transition duration-200"
+                          >
+                            <h4 className="font-bold text-md">
+                              {actividad.titulo}
+                            </h4>
+                            <p className="text-sm">{actividad.descripcion}</p>
+                            <p className="text-xs text-gray-500">
+                              Fecha de realización:{" "}
+                              {actividad.fechaRealizacion &&
+                              actividad.fechaRealizacion.toDate
+                                ? actividad.fechaRealizacion
+                                    .toDate()
+                                    .toLocaleDateString()
+                                : "No disponible"}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Notas: {actividad.notas}
+                            </p>
+                          </li>
+                        ))
+                    ) : (
+                      <p className="text-gray-500">
+                        No hay actividades realizadas.
+                      </p>
                     )}
                   </ul>
 
@@ -674,6 +759,7 @@ const AccordionPosiblesClientes = ({ items }) => {
                   <p>
                     <strong>Nombre del Negocio:</strong> {cliente.nombreNegocio}
                   </p>
+                  {/* Maps */}
                   <p>
                     <strong>Dirección (URL Maps):</strong>{" "}
                     <a
@@ -685,7 +771,7 @@ const AccordionPosiblesClientes = ({ items }) => {
                       Link a Maps
                     </a>
                   </p>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="telefono flex flex-wrap gap-2">
                     <strong>Teléfono:</strong>
                     <div className="flex gap-1 items-center">
                       <FaWhatsapp color="#25D366" size={20} />{" "}
@@ -713,6 +799,7 @@ const AccordionPosiblesClientes = ({ items }) => {
                       </a>
                     </div>
                   </div>
+                  {/* Correo */}
                   <p>
                     <strong>Correo:</strong>{" "}
                     <a
@@ -724,24 +811,7 @@ const AccordionPosiblesClientes = ({ items }) => {
                       {cliente.correo}
                     </a>
                   </p>
-                  <p>
-                    <strong>Sitio Web:</strong>{" "}
-                    {cliente.sitioWeb ? (
-                      <a
-                        href={cliente.sitioWeb}
-                        className="text-blue-500 underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {cliente.sitioWeb}
-                      </a>
-                    ) : (
-                      "N/A"
-                    )}
-                  </p>
-                  <p>
-                    <strong>Plan:</strong> {cliente.plan}
-                  </p>
+                  {/* Estado */}
                   <div>
                     <strong>Estado:</strong>
                     <select
@@ -792,50 +862,44 @@ const AccordionPosiblesClientes = ({ items }) => {
 
                   {/* Actividades */}
                   <div>
-                    <strong>Actividades:</strong>
-                    <div className="mt-2 space-y-2">
+                    <strong>Actividades Pendientes:</strong>
+                    <div className="mt-2 space-y-2 max-w-[600px]">
                       {cliente.actividades && cliente.actividades.length > 0 ? (
                         cliente.actividades
-                          .sort(
-                            (a, b) =>
-                              a.timestamp && b.timestamp
-                                ? b.timestamp.toDate() - a.timestamp.toDate()
-                                : 0 // Si no hay timestamp, no ordenamos
+                          .filter(
+                            (actividad) => actividad.estado !== "Realizado"
                           )
-                          .map((actividad, idx) => (
+                          .map((actividad) => (
                             <div
-                              key={idx}
+                              key={actividad.id} // Asegúrate de usar un ID único aquí
                               className="bg-gray-100 p-3 rounded shadow"
                             >
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">
-                                  {/* Convertimos la fecha a texto si es un timestamp */}
-                                  Fecha de creación:{" "}
-                                  {actividad.timestamp
-                                    ? actividad.timestamp
-                                        .toDate()
-                                        .toLocaleDateString()
-                                    : "No disponible"}
-                                </span>
-                              </div>
                               <h2 className="mt-2 text-xl">
                                 {actividad.titulo}
                               </h2>
                               <p className="mt-2">{actividad.descripcion}</p>
-                              <h3 className="mt-2">{actividad.notas}</h3>
+                              <p className="text-xs text-gray-600">
+                                Fecha de creación:{" "}
+                                {actividad.timestamp &&
+                                actividad.timestamp.toDate
+                                  ? actividad.timestamp
+                                      .toDate()
+                                      .toLocaleDateString()
+                                  : "No disponible"}
+                              </p>
 
-                              {/* Estado de la actividad */}
                               <div className="mt-2">
                                 <label className="mr-2">Estado:</label>
                                 <select
                                   className="border rounded p-1"
                                   value={actividad.estado || "Pendiente"}
-                                  onChange={(e) =>
-                                    handleEstadoChange(
-                                      cliente.id,
-                                      idx,
-                                      e.target.value
-                                    )
+                                  onChange={
+                                    (e) =>
+                                      handleEstadoChange(
+                                        cliente.id,
+                                        actividad.id,
+                                        e.target.value
+                                      ) // Usar el ID de la actividad
                                   }
                                 >
                                   <option value="Pendiente">Pendiente</option>
@@ -843,22 +907,28 @@ const AccordionPosiblesClientes = ({ items }) => {
                                 </select>
                               </div>
 
-                              {/* Si el estado es "Realizado", mostramos el campo para ingresar la fecha como texto */}
                               {actividad.estado === "Realizado" && (
                                 <div className="mt-2">
                                   <label className="block text-sm text-gray-600">
                                     Fecha de realización:
                                   </label>
                                   <input
-                                    type="text"
+                                    type="date"
                                     className="border rounded p-1"
-                                    placeholder="dd/mm/yyyy"
-                                    value={actividad.fechaRealizacion || ""}
+                                    value={
+                                      actividad.fechaRealizacion &&
+                                      actividad.fechaRealizacion.toDate
+                                        ? actividad.fechaRealizacion
+                                            .toDate()
+                                            .toISOString()
+                                            .split("T")[0]
+                                        : ""
+                                    }
                                     onChange={(e) =>
                                       handleFechaRealizacionChange(
                                         cliente.id,
-                                        idx,
-                                        e.target.value
+                                        actividad.id, // Usar el ID de la actividad
+                                        new Date(e.target.value)
                                       )
                                     }
                                   />
@@ -867,7 +937,43 @@ const AccordionPosiblesClientes = ({ items }) => {
                             </div>
                           ))
                       ) : (
-                        <p className="text-gray-500">No hay actividades.</p>
+                        <p className="text-gray-500">
+                          No hay actividades pendientes.
+                        </p>
+                      )}
+                    </div>
+
+                    <strong>Actividades Realizadas:</strong>
+                    <div className="mt-4 space-y-2 max-w-[600px]">
+                      {cliente.actividades && cliente.actividades.length > 0 ? (
+                        cliente.actividades
+                          .filter(
+                            (actividad) => actividad.estado === "Realizado"
+                          )
+                          .map((actividad) => (
+                            <div
+                              key={actividad.id} // Usar un ID único para cada actividad
+                              className="bg-green-100 p-3 rounded shadow"
+                            >
+                              <h2 className="mt-2 text-xl">
+                                {actividad.titulo}
+                              </h2>
+                              <p className="mt-2">{actividad.descripcion}</p>
+                              <p className="text-xs text-gray-600">
+                                Fecha de realización:{" "}
+                                {actividad.fechaRealizacion &&
+                                actividad.fechaRealizacion.toDate
+                                  ? actividad.fechaRealizacion
+                                      .toDate()
+                                      .toLocaleDateString()
+                                  : "No disponible"}
+                              </p>
+                            </div>
+                          ))
+                      ) : (
+                        <p className="text-gray-500">
+                          No hay actividades realizadas.
+                        </p>
                       )}
                     </div>
                   </div>
@@ -875,7 +981,7 @@ const AccordionPosiblesClientes = ({ items }) => {
                   {/* Notas */}
                   <div>
                     <strong>Notas:</strong>
-                    <div className="mt-2 space-y-2">
+                    <div className="mt-2 space-y-2 max-w-[600px]">
                       {cliente.notas && cliente.notas.length > 0 ? (
                         cliente.notas
                           .sort(
