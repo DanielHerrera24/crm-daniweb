@@ -283,26 +283,6 @@ const AccordionPosiblesClientes = ({ items }) => {
     });
   };
 
-  const handleGuardarRealizado = async (
-    clienteId,
-    actividadIdx,
-    fechaRealizacion
-  ) => {
-    const clienteRef = doc(db, "posiblesClientes", clienteId);
-
-    try {
-      await updateDoc(clienteRef, {
-        [`actividades.${actividadIdx}.estado`]: "Realizado",
-        [`actividades.${actividadIdx}.fechaRealizacion`]: fechaRealizacion,
-      });
-
-      toast.success("Actividad marcada como realizada y guardada.");
-    } catch (error) {
-      console.error("Error al actualizar la actividad:", error);
-      toast.error("Error al actualizar la actividad.");
-    }
-  };
-
   return (
     <div className="space-y-2 text-black">
       {items.map((cliente) => (

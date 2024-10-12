@@ -89,7 +89,7 @@ const PosiblesClientes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-auto bg-gray-100 p-4">
       <h2 className="text-2xl mb-4 text-black">Posibles Clientes</h2>
 
       {/* Botón para abrir el modal */}
