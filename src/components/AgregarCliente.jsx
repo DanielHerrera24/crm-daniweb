@@ -15,7 +15,7 @@ const AgregarCliente = ({ onClose }) => {
     correo: "",
     sitioWebActual: "",
     sitioWebAntiguo: "",
-    estado: "1er Desarrollo",
+    estado: "1er desarrollo",
     plan: "Inicial ($350/mes)",
     redesSociales: [],
     notas: [],
@@ -120,7 +120,7 @@ const AgregarCliente = ({ onClose }) => {
         correo: "",
         sitioWebActual: "",
         sitioWebAntiguo: "",
-        estado: "1er Desarrollo",
+        estado: "1er desarrollo",
         plan: "Inicial",
         redesSociales: [],
         notas: [],
@@ -394,7 +394,7 @@ const AgregarCliente = ({ onClose }) => {
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded"
             >
-              <option value="1er Desarrollo">1er Desarrollo</option>
+              <option value="1er desarrollo">1er Desarrollo</option>
               <option value="Listo para 1ra revision">
                 Listo para 1ra revision
               </option>
